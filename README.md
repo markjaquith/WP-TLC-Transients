@@ -46,7 +46,11 @@ We can even pass parameters to our callback.
 <?php
 // Define your callback
 function my_callback_with_param( $param ) {
-	return str_replace( 'foo', $param, wp_remote_retrieve_body( wp_remote_get( 'http://example.com/feed.xml, array( 'timeout' => 30 ) ) ) );
+	return str_replace(
+		'foo',
+		$param,
+		wp_remote_retrieve_body( wp_remote_get( 'http://example.com/feed.xml, array( 'timeout' => 30 ) ) )
+	);
 }
 
 // Grab that feed
