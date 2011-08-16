@@ -49,7 +49,7 @@ function my_callback_with_param( $param ) {
 	return str_replace(
 		'foo',
 		$param,
-		wp_remote_retrieve_body( wp_remote_get( 'http://example.com/feed.xml, array( 'timeout' => 30 ) ) )
+		wp_remote_retrieve_body( wp_remote_get( 'http://example.com/feed.xml, array( 'timeout' => 30 ) ) ),
 	);
 }
 
