@@ -9,7 +9,11 @@ class TLC_Transient_Update_Server {
 		if ( isset( $_POST['_tlc_update'] ) ) {
 			$update = get_transient( 'tlc_update__' . $_POST['key'] );
 			if ( $update && $update[0] == $_POST['_tlc_update'] ) {
-				tlc_transient( $update[1] )->expires_in( $update[2] )->updates_with( $update[3], (array) $update[4] )->set_lock( $update[0] )->fetch_and_cache();
+				tlc_transient( $update[1] )
+					->expires_in( $update[2] )
+					->updates_with( $update[3], (array) $update[4] )
+					->set_lock( $update[0] )
+					->fetch_and_cache();
 			}
 			exit();
 		}
