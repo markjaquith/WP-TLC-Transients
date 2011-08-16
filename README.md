@@ -10,18 +10,27 @@ In this simple example, we're defining a feed-fetching callback, and then using 
 <?php>
 // Define your callback (other examples use this)
 function my_callback() {
-	return wp_remote_retrieve_body( wp_remote_get( 'http://example.com/feed.xml, array( 'timeout' => 30 ) ) );
+	return wp_remote_retrieve_body(
+		wp_remote_get( 'http://example.com/feed.xml', array( 'timeout' => 30 ) )
+	);
 }
 
 // Grab that feed
-echo tlc_transient( 'example-feed' )->updates_with( 'my_callback' )->expires_in( 300 )->get();
+echo tlc_transient( 'example-feed' )
+	->updates_with( 'my_callback' )
+	->expires_in( 300 )
+	->get();
 ?>
 ```
 This time, we'll set `background_only()` in the chain. This means that if there has been a hard cache flush, or this is the first-ever request, it will return false. So your code will have to be written to gracefully degrade if the feed isn't yet available. This, of course, triggers a background update. And once it is available, it will start returning the content.
 
 ```php
 <?php
-echo tlc_transient( 'example-feed' )->updates_with( 'my_callback' )->expires_in( 300 )->background_only()->get();
+echo tlc_transient( 'example-feed' )
+	->updates_with( 'my_callback' )
+	->expires_in( 300 )
+	->background_only()
+	->get();
 ?>
 ```
 
@@ -49,11 +58,15 @@ function my_callback_with_param( $param ) {
 	return str_replace(
 		'foo',
 		$param,
-		wp_remote_retrieve_body( wp_remote_get( 'http://example.com/feed.xml, array( 'timeout' => 30 ) ) ),
+		wp_remote_retrieve_body( wp_remote_get( 'http://example.com/feed.xml', array( 'timeout' => 30 ) ) ),
 	);
 }
 
 // Grab that feed
-echo tlc_transient( 'example-feed' )->updates_with( 'my_callback_with_param', array( 'bar' ) )->expires_in( 300 )->background_only()->get();
+echo tlc_transient( 'example-feed' )
+	->updates_with( 'my_callback_with_param', array( 'bar' ) )
+	->expires_in( 300 )
+	->background_only()
+	->get();
 ?>
 ```
