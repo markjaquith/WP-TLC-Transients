@@ -11,6 +11,7 @@ class TLC_Transient_Update_Server {
 			if ( $update && $update[0] == $_POST['_tlc_update'] ) {
 				tlc_transient( $update[1] )
 					->expires_in( $update[2] )
+					->retry_in( $update[5] )
 					->updates_with( $update[3], (array) $update[4] )
 					->set_lock( $update[0] )
 					->fetch_and_cache();
@@ -29,6 +30,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 		private $callback;
 		private $params;
 		private $expiration = 0;
+		private $retry = 0;
 		private $force_background_updates = false;
 
 		public function __construct( $key ) {
@@ -58,7 +60,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 
 		private function schedule_background_fetch() {
 			if ( !$this->has_update_lock() ) {
-				set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->key, $this->expiration, $this->callback, $this->params ), 300 );
+				set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->key, $this->expiration, $this->callback, $this->params, $this->retry ), 300 );
 				add_action( 'shutdown', array( $this, 'spawn_server' ) );
 			}
 			return $this;
@@ -78,7 +80,9 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 			try {
  				$data = call_user_func_array( $this->callback, $this->params );
 				$this->set( $data );
-			} catch( Exception $e ) {}
+			} catch( Exception $e ) {
+				$this->set_retry();
+			}
 			$this->release_update_lock();
 			return $data;
 		}
@@ -88,6 +92,16 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 			// The actual transient has no TTL. This allows for soft expiration.
 			$expiration = ( $this->expiration > 0 ) ? time() + $this->expiration : 0;
 			set_transient( $this->key, array( $expiration, $data ) );
+			return $this;
+		}
+
+		public function set_retry() {
+			if ( $this->retry > 0 ) {
+				// Update expiration time of transient
+				$data = get_transient( $this->key );
+				if ( false !== $data )
+					set_transient( $this->key, array( time() + $this->retry, $data[1] ) );
+			}
 			return $this;
 		}
 
@@ -128,6 +142,11 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 			return $this;
 		}
 
+		public function retry_in( $seconds ) {
+			$this->retry = (int) $seconds;
+			return $this;
+		}
+
 		public function set_lock( $lock ) {
 			$this->lock = $lock;
 			return $this;
@@ -149,14 +168,16 @@ function tlc_transient( $key ) {
 // Example:
 
 function sample_fetch_and_append( $url, $append ) {
-	$f  = wp_remote_retrieve_body( wp_remote_get( $url, array( 'timeout' => 30 ) ) );
-	$f .= $append;
-	return $f;
+	$response = wp_remote_get( $url, array( 'timeout' => 30 ) );
+	if ( is_wp_error($response) )
+		throw new Exception( $response->get_error_message() );
+	return wp_remote_retrieve_body( $response ) . $append;
 }
 
 function test_tlc_transient() {
 	$t = tlc_transient( 'foo' )
 		->expires_in( 30 )
+		->retry_in( 10 )
 		->background_only()
 		->updates_with( 'sample_fetch_and_append', array( 'http://coveredwebservices.com/tools/long-running-request.php', ' appendfooparam ' ) )
 		->get();
