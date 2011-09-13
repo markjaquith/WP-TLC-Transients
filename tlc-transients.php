@@ -78,7 +78,9 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 			try {
  				$data = call_user_func_array( $this->callback, $this->params );
 				$this->set( $data );
-			} catch( Exception $e ) {}
+			} catch( Exception $e ) {
+				$data = false;
+			}
 			$this->release_update_lock();
 			return $data;
 		}
