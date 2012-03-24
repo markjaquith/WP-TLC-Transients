@@ -70,3 +70,15 @@ echo tlc_transient( 'example-feed' )
 	->get();
 ?>
 ```
+In some exceptional cases you may not want background updates.  This is less efficient and almost negates the need for use of this library, but it allows calling code to easily choose between using background updates or not without having to rewrite their whole transient-handling code.
+
+```php
+// Grab that feed - don't background-update
+echo tlc_transient( 'example-feed' )
+	->updates_with( 'my_callback_with_param', array( 'bar' ) )
+	->prevent_background()
+	->expires_in( 300 )
+	->background_only()
+	->get();
+?>
+```

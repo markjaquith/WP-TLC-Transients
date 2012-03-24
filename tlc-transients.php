@@ -32,6 +32,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 		private $params;
 		private $expiration = 0;
 		private $force_background_updates = false;
+		private $prevent_background_updates = false;
 
 		public function __construct( $key ) {
 			$this->key = substr( $key, 0, 37 );
@@ -52,8 +53,13 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 				}
 			} else {
 				// Soft expiration
-				if ( $data[0] !== 0 && $data[0] < time() )
-					$this->schedule_background_fetch();
+				if ( $data[0] !== 0 && $data[0] < time() ) {
+					if ( $this->prevent_background_updates ) {
+						return $this->fetch_and_cache();
+					} else {
+						$this->schedule_background_fetch();
+					}
+				}
 				return $data[1];
 			}
 		}
@@ -139,6 +145,11 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 
 		public function background_only() {
 			$this->force_background_updates = true;
+			return $this;
+		}
+
+		public function prevent_background() {
+			$this->prevent_background_updates = true;
 			return $this;
 		}
 	}
