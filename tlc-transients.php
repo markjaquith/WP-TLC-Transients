@@ -1,21 +1,23 @@
 <?php
 
-class TLC_Transient_Update_Server {
-	public function __construct() {
-		add_action( 'init', array( $this, 'init' ) );
-	}
-
-	public function init() {
-		if ( isset( $_POST['_tlc_update'] ) ) {
-			$update = get_transient( 'tlc_up__' . $_POST['key'] );
-			if ( $update && $update[0] == $_POST['_tlc_update'] ) {
-				tlc_transient( $update[1] )
-					->expires_in( $update[2] )
-					->updates_with( $update[3], (array) $update[4] )
-					->set_lock( $update[0] )
-					->fetch_and_cache();
+if ( !class_exists( 'TLC_Transient_Update_Server' ) ) {
+	class TLC_Transient_Update_Server {
+		public function __construct() {
+			add_action( 'init', array( $this, 'init' ) );
+		}
+	
+		public function init() {
+			if ( isset( $_POST['_tlc_update'] ) ) {
+				$update = get_transient( 'tlc_up__' . $_POST['key'] );
+				if ( $update && $update[0] == $_POST['_tlc_update'] ) {
+					tlc_transient( $update[1] )
+						->expires_in( $update[2] )
+						->updates_with( $update[3], (array) $update[4] )
+						->set_lock( $update[0] )
+						->fetch_and_cache();
+				}
+				exit();
 			}
-			exit();
 		}
 	}
 }
@@ -143,13 +145,15 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 }
 
 // API so you don't have to use "new"
-function tlc_transient( $key ) {
-	$transient = new TLC_Transient( $key );
-	return $transient;
+if ( !function_exists( 'tlc_transient' ) ) {
+	function tlc_transient( $key ) {
+		$transient = new TLC_Transient( $key );
+		return $transient;
+	}
 }
 
 // Example:
-
+/*
 function sample_fetch_and_append( $url, $append ) {
 	$f  = wp_remote_retrieve_body( wp_remote_get( $url, array( 'timeout' => 30 ) ) );
 	$f .= $append;
@@ -168,3 +172,4 @@ function test_tlc_transient() {
 }
 
 add_action( 'wp_footer', 'test_tlc_transient' );
+*/
