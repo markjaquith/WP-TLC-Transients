@@ -103,7 +103,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 		}
 
 		private function new_update_lock() {
-			$this->lock = md5( uniqid( microtime() . mt_rand(), true ) );
+			$this->lock = uniqid( 'tlc_lock_', true );
 			return $this->lock;
 		}
 
