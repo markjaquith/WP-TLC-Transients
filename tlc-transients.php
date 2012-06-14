@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'TLC_TRANSIENT_TTL_DEFAULT' ) ) {
+	define( 'TLC_TRANSIENT_TTL_DEFAULT', 300 );
+}
 
 if ( !class_exists( 'TLC_Transient_Update_Server' ) ) {
 	class TLC_Transient_Update_Server {
@@ -30,7 +33,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 		private $lock;
 		private $callback;
 		private $params;
-		private $expiration = 0;
+		private $expiration = TLC_TRANSIENT_TTL_DEFAULT;
 		private $force_background_updates = false;
 
 		public function __construct( $key ) {
@@ -60,7 +63,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 
 		private function schedule_background_fetch() {
 			if ( !$this->has_update_lock() ) {
-				set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->key, $this->expiration, $this->callback, $this->params ), 300 );
+				set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->key, $this->expiration, $this->callback, $this->params ), ( $this->expiration + TLC_TRANSIENT_TTL_DEFAULT ) );
 				add_action( 'shutdown', array( $this, 'spawn_server' ) );
 			}
 			return $this;
@@ -90,8 +93,8 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 		public function set( $data ) {
 			// We set the timeout as part of the transient data.
 			// The actual transient has no TTL. This allows for soft expiration.
-			$expiration = ( $this->expiration > 0 ) ? time() + $this->expiration : 0;
-			set_transient( $this->key, array( $expiration, $data ) );
+			$expiration = ( $this->expiration > 0 ) ? time() + $this->expiration : TLC_TRANSIENT_TTL_DEFAULT;
+			set_transient( $this->key, array( $expiration, $data ), $expiration );
 			return $this;
 		}
 
