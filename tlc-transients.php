@@ -13,13 +13,20 @@ if ( !class_exists( 'TLC_Transient_Update_Server' ) ) {
 			if ( isset( $_POST['_tlc_update'] ) 
 				&& ( 0 === strpos( $_POST['_tlc_update'], 'tlc_lock_' ) ) 
 				&& isset( $_POST['key'] ) 
+				&& ( 32 === strlen( $_POST['key'] ) ) 
 			) {
 				$update = get_transient( 'tlc_up__' . $_POST['key'] );
-				if ( $update && $update[0] == $_POST['_tlc_update'] ) {
-					tlc_transient( $update[1] )
-						->expires_in( $update[2] )
-						->updates_with( $update[3], (array) $update[4] )
-						->set_lock( $update[0] )
+				if ( isset( $update[0] ) && $update[0] == $_POST['_tlc_update'] ) {
+					$lock = ( isset($update[0]) ) ? $update[0] : null;
+					$key = ( isset($update[1]) ) ? $update[1] : null;
+					$seconds = ( isset($update[2]) ) ? $update[2] : TLC_TRANSIENT_TTL_DEFAULT;
+					$callback = ( isset($update[3]) ) ? $update[3] : null;
+					$params = ( isset($update[4]) ) ? $update[4] : array();
+
+					tlc_transient( $key, 'nohash' )
+						->expires_in( $seconds )
+						->updates_with( $callback, (array) $params )
+						->set_lock( $lock )
 						->fetch_and_cache();
 				}
 				exit();
@@ -39,8 +46,12 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 		private $expiration = TLC_TRANSIENT_TTL_DEFAULT;
 		private $force_background_updates = false;
 
-		public function __construct( $key ) {
-			$this->key = substr( $key, 0, 37 );
+		public function __construct( $key, $action = 'hash' ) {
+			if ( 'hash' === $action ) {
+				$this->key = md5( $key );
+			} else {
+				$this->key = $key;
+			}
 		}
 
 		public function get() {
