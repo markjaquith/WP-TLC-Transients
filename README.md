@@ -7,7 +7,7 @@ A WordPress transients interface with support for soft-expiration (use old conte
 In this simple example, we're defining a feed-fetching callback, and then using `tlc_transient` with a chain to point to that callback and use it, all in one line. Note that since we haven't used `background_only()`, the initial load of this **will** cause the page to pause.
 
 ```php
-<?php>
+<?php
 // Define your callback (other examples use this)
 function my_callback() {
 	return wp_remote_retrieve_body(
