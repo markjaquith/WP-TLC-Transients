@@ -7,9 +7,9 @@ if ( !class_exists( 'TLC_Transient_Update_Server' ) ) {
 		}
 	
 		public function init() {
-			if ( isset( $_POST['_tlc_update'] ) 
-				&& ( 0 === strpos( $_POST['_tlc_update'], 'tlc_lock_' ) ) 
-				&& isset( $_POST['key'] ) 
+			if ( isset( $_POST['_tlc_update'] )
+				&& ( 0 === strpos( $_POST['_tlc_update'], 'tlc_lock_' ) )
+				&& isset( $_POST['key'] )
 			) {
 				$update = get_transient( 'tlc_up__' . $_POST['key'] );
 				if ( $update && $update[0] == $_POST['_tlc_update'] ) {
