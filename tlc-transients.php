@@ -5,7 +5,7 @@ if ( !class_exists( 'TLC_Transient_Update_Server' ) ) {
 		public function __construct() {
 			add_action( 'init', array( $this, 'init' ) );
 		}
-	
+
 		public function init() {
 			if ( isset( $_POST['_tlc_update'] )
 				&& ( 0 === strpos( $_POST['_tlc_update'], 'tlc_lock_' ) )
