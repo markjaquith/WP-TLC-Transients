@@ -11,7 +11,7 @@ if ( !class_exists( 'TLC_Transient_Update_Server' ) ) {
 				&& ( 0 === strpos( $_POST['_tlc_update'], 'tlc_lock_' ) )
 				&& isset( $_POST['key'] )
 			) {
-				$update = get_transient( 'tlc_up__' . $_POST['key'] );
+				$update = get_transient( 'tlc_up__' . md5( $_POST['key'] ) );
 				if ( $update && $update[0] == $_POST['_tlc_update'] ) {
 					tlc_transient( $update[1] )
 						->expires_in( $update[2] )
@@ -30,6 +30,7 @@ new TLC_Transient_Update_Server;
 if ( !class_exists( 'TLC_Transient' ) ) {
 	class TLC_Transient {
 		public $key;
+		public $raw_key;
 		private $lock;
 		private $callback;
 		private $params;
@@ -37,11 +38,12 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 		private $force_background_updates = false;
 
 		public function __construct( $key ) {
-			$this->key = substr( $key, 0, 37 );
+			$this->raw_key = $key;
+			$this->key = md5( $key );
 		}
 
 		public function get() {
-			$data = get_transient( $this->key );
+			$data = get_transient( 'tlc__' . $this->key );
 			if ( false === $data ) {
 				// Hard expiration
 				if ( $this->force_background_updates ) {
@@ -63,7 +65,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 
 		private function schedule_background_fetch() {
 			if ( !$this->has_update_lock() ) {
-				set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->key, $this->expiration, $this->callback, $this->params ), 300 );
+				set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->raw_key, $this->expiration, $this->callback, $this->params ), 300 );
 				add_action( 'shutdown', array( $this, 'spawn_server' ) );
 			}
 			return $this;
@@ -71,7 +73,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 
 		public function spawn_server() {
 			$server_url = home_url( '/?tlc_transients_request' );
-			wp_remote_post( $server_url, array( 'body' => array( '_tlc_update' => $this->lock, 'key' => $this->key ), 'timeout' => 0.01, 'blocking' => false, 'sslverify' => apply_filters( 'https_local_ssl_verify', true ) ) );
+			wp_remote_post( $server_url, array( 'body' => array( '_tlc_update' => $this->lock, 'key' => $this->raw_key ), 'timeout' => 0.01, 'blocking' => false, 'sslverify' => apply_filters( 'https_local_ssl_verify', true ) ) );
 		}
 
 		public function fetch_and_cache() {
@@ -94,7 +96,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 			// We set the timeout as part of the transient data.
 			// The actual transient has no TTL. This allows for soft expiration.
 			$expiration = ( $this->expiration > 0 ) ? time() + $this->expiration : 0;
-			set_transient( $this->key, array( $expiration, $data ) );
+			set_transient( 'tlc__' . $this->key, array( $expiration, $data ) );
 			return $this;
 		}
 
