@@ -96,7 +96,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 			// We set the timeout as part of the transient data.
 			// The actual transient has a far-future TTL. This allows for soft expiration.
 			$expiration = ( $this->expiration > 0 ) ? time() + $this->expiration : 0;
-			set_transient( 'tlc__' . $this->key, array( $expiration, $data ), 31536000 ); // 60*60*24*365 ~= one year
+			set_transient( 'tlc__' . $this->key, array( $expiration, $data ), $expiration + 31536000 ); // 60*60*24*365 ~= one year
 			return $this;
 		}
 
