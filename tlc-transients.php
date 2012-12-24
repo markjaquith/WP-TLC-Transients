@@ -15,6 +15,7 @@ if ( !class_exists( 'TLC_Transient_Update_Server' ) ) {
 				if ( $update && $update[0] == $_POST['_tlc_update'] ) {
 					tlc_transient( $update[1] )
 						->expires_in( $update[2] )
+						->extend_on_fail( $update[5] )
 						->updates_with( $update[3], (array) $update[4] )
 						->set_lock( $update[0] )
 						->fetch_and_cache();
@@ -35,6 +36,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 		private $callback;
 		private $params;
 		private $expiration = 0;
+		private $extend_on_fail = 0;
 		private $force_background_updates = false;
 
 		public function __construct( $key ) {
@@ -42,8 +44,12 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 			$this->key = md5( $key );
 		}
 
+		private function raw_get() {
+			return get_transient( 'tlc__' . $this->key );
+		}
+
 		public function get() {
-			$data = get_transient( 'tlc__' . $this->key );
+			$data = $this->raw_get();
 			if ( false === $data ) {
 				// Hard expiration
 				if ( $this->force_background_updates ) {
@@ -65,7 +71,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 
 		private function schedule_background_fetch() {
 			if ( !$this->has_update_lock() ) {
-				set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->raw_key, $this->expiration, $this->callback, $this->params ), 300 );
+				set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->raw_key, $this->expiration, $this->callback, $this->params, $this->extend_on_fail ), 300 );
 				add_action( 'shutdown', array( $this, 'spawn_server' ) );
 			}
 			return $this;
@@ -86,7 +92,18 @@ if ( !class_exists( 'TLC_Transient' ) ) {
  				$data = call_user_func_array( $this->callback, $this->params );
 				$this->set( $data );
 			} catch( Exception $e ) {
-				$data = false;
+				if ( $this->extend_on_fail > 0 ) {
+					$data = $this->raw_get();
+					if ( $data ) {
+						$data = $data[1];
+						$old_expiration = $this->expiration;
+						$this->expiration = $this->extend_on_fail;
+						$this->set( $data );
+						$this->expiration = $old_expiration;
+					}
+				} else {
+					$data = false;
+				}
 			}
 			$this->release_update_lock();
 			return $data;
@@ -135,6 +152,11 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 
 		public function expires_in( $seconds ) {
 			$this->expiration = (int) $seconds;
+			return $this;
+		}
+
+		public function extend_on_fail( $seconds ) {
+			$this->extend_on_fail = (int) $seconds;
 			return $this;
 		}
 
