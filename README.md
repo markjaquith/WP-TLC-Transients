@@ -2,6 +2,10 @@
 
 A WordPress transients interface with support for soft-expiration (use old content until new content is available), background updating of the transients (without having to wait for a cron job), and a chainable syntax that allows for one liners.
 
+## License
+
+TLC Transients is licensed under the GPL, version 2.0 or any later version. See `LICENSE`.
+
 ## Examples
 
 In this simple example, we're defining a feed-fetching callback, and then using `tlc_transient` with a chain to point to that callback and use it, all in one line. Note that since we haven't used `background_only()`, the initial load of this **will** cause the page to pause.
