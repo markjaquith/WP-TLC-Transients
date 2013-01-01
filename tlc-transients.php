@@ -24,9 +24,9 @@ if ( !class_exists( 'TLC_Transient_Update_Server' ) ) {
 			}
 		}
 	}
-}
 
-new TLC_Transient_Update_Server;
+	new TLC_Transient_Update_Server;
+}
 
 if ( !class_exists( 'TLC_Transient' ) ) {
 	class TLC_Transient {
