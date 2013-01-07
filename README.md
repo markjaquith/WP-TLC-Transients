@@ -74,3 +74,9 @@ echo tlc_transient( 'example-feed' )
 	->get();
 ?>
 ```
+
+## Notes
+
+### Context
+
+It should be noted that when a callback runs asynchronously, you are not in control of context. The context that existed when you registered the callback has no bearing on the context when the callback is actually run. So if there is **anything** that you're assuming in your callback function (whether a certain user being current, a certain post having been queried, etc), you must rewrite your calllback function so that these assumptions are not made, and instead pass in this context in the form of parameters, which your callback then uses to recreate your desired context.
