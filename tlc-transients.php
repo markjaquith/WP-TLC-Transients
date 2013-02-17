@@ -84,7 +84,7 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 
 		public function fetch_and_cache() {
 			// If you don't supply a callback, we can't update it for you!
-			if ( empty( $this->callback ) )
+			if ( empty( $this->callback ) || ! is_callable( $this->callback ) )
 				return false;
 			if ( $this->has_update_lock() && !$this->owns_update_lock() )
 				return; // Race... let the other process handle it
