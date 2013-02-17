@@ -79,12 +79,12 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 
 		public function spawn_server() {
 			$server_url = home_url( '/?tlc_transients_request' );
-			wp_remote_post( $server_url, array( 'body' => array( '_tlc_update' => $this->lock, 'key' => $this->raw_key ), 'timeout' => 0.01, 'blocking' => false, 'sslverify' => apply_filters( 'https_local_ssl_verify', true ) ) );
+			wp_remote_post( $server_url, array( 'body' => array( '_tlc_update' => $this->lock, 'key' => $this->raw_key ), 'timeout' => 5, 'blocking' => false, 'sslverify' => apply_filters( 'https_local_ssl_verify', true ) ) );
 		}
 
 		public function fetch_and_cache() {
 			// If you don't supply a callback, we can't update it for you!
-			if ( empty( $this->callback ) )
+			if ( empty( $this->callback ) || ! is_callable( $this->callback ) )
 				return false;
 			if ( $this->has_update_lock() && !$this->owns_update_lock() )
 				return; // Race... let the other process handle it
@@ -115,6 +115,11 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 			$expiration = ( $this->expiration > 0 ) ? time() + $this->expiration : 0;
 			$transient_expiration = ( $this->expiration > 0 ) ? $this->expiration + 31536000 : 0; // 31536000 = 60*60*24*365 ~= one year
 			set_transient( 'tlc__' . $this->key, array( $expiration, $data ), $transient_expiration ); 
+			return $this;
+		}
+
+		public function delete() {
+			delete_transient( 'tlc__' . $this->key );
 			return $this;
 		}
 
