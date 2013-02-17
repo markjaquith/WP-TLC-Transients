@@ -118,6 +118,11 @@ if ( !class_exists( 'TLC_Transient' ) ) {
 			return $this;
 		}
 
+		public function delete() {
+			delete_transient( 'tlc__' . $this->key );
+			return $this;
+		}
+
 		public function updates_with( $callback, $params = array() ) {
 			$this->callback = $callback;
 			if ( is_array( $params ) )
