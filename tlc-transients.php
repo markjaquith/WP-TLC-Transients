@@ -3,7 +3,7 @@
 if ( !class_exists( 'TLC_Transient_Update_Server' ) ) {
 	class TLC_Transient_Update_Server {
 		public function __construct() {
-			add_action( 'init', array( $this, 'init' ) );
+			add_action( 'init', array( $this, 'init' ), 9999 );
 		}
 
 		public function init() {
