@@ -15,7 +15,7 @@
 		"source": "https://github.com/markjaquith/WP-TLC-Transients"
 	},
 	"autoload"   : {
-		"classmap": [""],
+		"classmap": ["class-tlc-transient.php", "class-tlc-transient-update-server.php"],
 		"files"   : ["functions.php"]
 	}
 }
