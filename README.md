@@ -80,3 +80,35 @@ echo tlc_transient( 'example-feed' )
 ### Context
 
 It should be noted that when a callback runs asynchronously, you are not in control of context. The context that existed when you registered the callback has no bearing on the context when the callback is actually run. So if there is **anything** that you're assuming in your callback function (whether a certain user being current, a certain post having been queried, etc), you must rewrite your calllback function so that these assumptions are not made, and instead pass in this context in the form of parameters, which your callback then uses to recreate your desired context.
+
+### Handling Errors in the Callback
+
+When your callback does a remote call and receives an error or bad data, you 
+typically want to keep the existing transient around and retry the callback 
+later to ensure you don't retrieve bad data from the transient. To do this,
+use `extend_on_fail()` and throw an `Exception` in your callback when you
+encounter an error. For example:
+
+```php
+<?php
+// Define your callback
+function my_callback() {
+	$response = wp_remote_get( 'http://example.com/feed.xml', array( 'timeout' => 30 ) );
+	
+	if ( is_wp_error( $response ) || 200 != wp_remote_retrieve_response_code( $response ) )
+		throw new Exception();
+	
+	if ( ! $feed = wp_remote_retrive_body( $response ) )
+		throw new Exception();
+		
+	return $feed;
+}
+
+// Grab that feed and if the callback fails, extend the existing transient for 60 seconds
+echo tlc_transient( 'example-feed' )
+	->updates_with( 'my_callback' )
+	->extend_on_fail( 60 )
+	->expires_in( 300 )
+	->get();
+?>
+```
