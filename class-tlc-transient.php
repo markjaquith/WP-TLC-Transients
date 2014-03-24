@@ -58,7 +58,7 @@ class TLC_Transient {
 
 	public function save_transient_status(){
 		$list = get_option('lh_cache_info');
-		$transient_data = array("cache_info" => array("name" =>$this->raw_key, "key"=>$this->key ));
+		$transient_data = array("name" =>$this->raw_key, "key"=>$this->key );
 		// check if the array in list:
 		$list[$this->group][] = $transient_data;
 		update_option('lh_cache_info',$list);
