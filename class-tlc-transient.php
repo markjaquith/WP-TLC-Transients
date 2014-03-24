@@ -9,6 +9,7 @@ class TLC_Transient {
 	private $expiration = 0;
 	private $extend_on_fail = 0;
 	private $force_background_updates = false;
+	private $group = "others";
 
 	public function __construct( $key ) {
 		$this->raw_key = $key;
@@ -48,6 +49,20 @@ class TLC_Transient {
 			add_action( 'shutdown', array( $this, 'spawn_server' ) );
 		}
 		return $this;
+	}
+
+	public function add_group($group) {
+		$this->group = $group;
+		return $this;
+	}
+
+	public function save_transient_status(){
+		$list = get_option('lh_cache_list');
+		$transient_data = array("cache_info" => array("name" =>$this->raw_key, "key"=>$this->key ));
+		// check if the array in list:
+
+		$list[$this->group][] = $transient_data;
+		update_option('lh_cache_list',$list);
 	}
 
 	private function has_update_lock() {
