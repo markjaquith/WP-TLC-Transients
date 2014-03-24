@@ -9,7 +9,7 @@ class TLC_Transient {
 	private $expiration = 0;
 	private $extend_on_fail = 0;
 	private $force_background_updates = false;
-	private $group = "others";
+	private $group;
 
 	public function __construct( $key ) {
 		$this->raw_key = $key;
@@ -53,15 +53,15 @@ class TLC_Transient {
 
 	public function add_group($group) {
 		$this->group = $group;
+		$cache_timestamp = get_option('lh_cache_info');
+		if (empty( $cache_timestamp[$group]) ){ 
+			//if timestamp for option is empty,assign a timestamp
+			$cache_timestamp[$group] = date('Y-m-d H:i:s');
+			update_option('lh_cache_info',$cache_timestamp);
+		}
+		//update the key
+		$this->key     = md5( $this->raw_key.$cache_timestamp['$group'] );
 		return $this;
-	}
-
-	public function save_transient_status(){
-		$list = get_option('lh_cache_info');
-		$transient_data = array("name" =>$this->raw_key, "key"=>$this->key );
-		// check if the array in list:
-		$list[$this->group][] = $transient_data;
-		update_option('lh_cache_info',$list);
 	}
 
 	private function has_update_lock() {
@@ -106,8 +106,6 @@ class TLC_Transient {
 			}
 		}
 		$this->release_update_lock();
-		//save the cache info to lh-cache-info
-		$this->save_transient_status();
 		return $data;
 	}
 
