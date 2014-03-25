@@ -53,15 +53,20 @@ class TLC_Transient {
 
 	public function add_group($group) {
 		$this->group = $group;
-		$cache_timestamp = get_option('cache_info');
-		if (empty( $cache_timestamp[$group]) ){ 
-			//if timestamp for option is empty,assign a timestamp
-			$cache_timestamp[$group] = strtotime("now");
-			update_option('cache_info',$cache_timestamp);
-		}
-		//update the key
-		$this->raw_key = $this->raw_key.$cache_timestamp['$group'];
-		$this->key     = md5( $this->raw_key.$cache_timestamp['$group'] );
+		wp_cache_add($key = 'transinet_group', $data = array($group));
+		//if the transinet group is not set, add the data
+		$group_list = wp_cache_get($key = 'transinet_group');
+		if( !in_array($group, $group_list) ){
+			//if a new group is added, up
+			$group_list[] = $group;
+			wp_cache_set( $key = 'transinet_group', $data = $group_list);
+		} 
+
+		wp_cache_add($key = 'transinet_time_key',$data = strtotime("now"),$group = $group);	
+		//if a new group is added, assign a current timestamp to data.
+		$cache_timestamp = wp_cache_get($key = 'transinet_time_key',$group = $group);
+		$this->raw_key = $this->raw_key.$cache_timestamp;
+		$this->key     = md5( $this->raw_key.$cache_timestamp );
 		return $this;
 	}
 
