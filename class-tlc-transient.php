@@ -53,13 +53,14 @@ class TLC_Transient {
 
 	public function add_group($group) {
 		$this->group = $group;
-		$cache_timestamp = get_option('lh_cache_info');
+		$cache_timestamp = get_option('cache_info');
 		if (empty( $cache_timestamp[$group]) ){ 
 			//if timestamp for option is empty,assign a timestamp
-			$cache_timestamp[$group] = date('Y-m-d H:i:s');
-			update_option('lh_cache_info',$cache_timestamp);
+			$cache_timestamp[$group] = strtotime("now");
+			update_option('cache_info',$cache_timestamp);
 		}
 		//update the key
+		$this->raw_key = $this->raw_key.$cache_timestamp['$group'];
 		$this->key     = md5( $this->raw_key.$cache_timestamp['$group'] );
 		return $this;
 	}
