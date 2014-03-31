@@ -62,9 +62,9 @@ class TLC_Transient {
 
 		$cache_timestamp = wp_cache_get('transinet_time_key_'.$group );
 		if ( empty ($cache_timestamp) ){
+			//if a new group is added, assign a current timestamp to data.
 			wp_cache_add('transinet_time_key_'.$group, time() );
 		}
-		//if a new group is added, assign a current timestamp to data.
 		$this->raw_key = $this->raw_key.$cache_timestamp;
 		$this->key     = md5( $this->raw_key.$cache_timestamp );
 		return $this;
