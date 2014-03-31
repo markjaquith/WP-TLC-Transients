@@ -53,18 +53,18 @@ class TLC_Transient {
 
 	public function add_group($group) {
 		$this->group = $group;
-		wp_cache_add($key = 'transinet_group', $data = array($group));
-		//if the transinet group is not set, add the data
-		$group_list = wp_cache_get($key = 'transinet_group');
+		$group_list = wp_cache_get('transinet_group');
 		if( !in_array($group, $group_list) ){
 			//if a new group is added, up
 			$group_list[] = $group;
-			wp_cache_set( $key = 'transinet_group', $data = $group_list);
-		} 
+			wp_cache_set('transinet_group',$group_list);
+		}
 
-		wp_cache_add($key = 'transinet_time_key_'.$group, $data = time() );	
+		$cache_timestamp = wp_cache_get('transinet_time_key_'.$group );
+		if ( empty ($cache_timestamp) ){
+			wp_cache_add('transinet_time_key_'.$group, time() );
+		}
 		//if a new group is added, assign a current timestamp to data.
-		$cache_timestamp = wp_cache_get($key = 'transinet_time_key_'.$group );
 		$this->raw_key = $this->raw_key.$cache_timestamp;
 		$this->key     = md5( $this->raw_key.$cache_timestamp );
 		return $this;
