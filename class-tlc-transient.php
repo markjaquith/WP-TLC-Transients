@@ -9,7 +9,7 @@ class TLC_Transient {
 	private $expiration = 0;
 	private $extend_on_fail = 0;
 	private $force_background_updates = false;
-	private $group;
+	private $group = false;
 
 	public function __construct( $key ) {
 		$this->raw_key = $key;
@@ -45,7 +45,7 @@ class TLC_Transient {
 
 	private function schedule_background_fetch() {
 		if ( ! $this->has_update_lock() ) {
-			set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->raw_key, $this->expiration, $this->callback, $this->params, $this->extend_on_fail ), 300 );
+			set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->raw_key, $this->expiration, $this->callback, $this->params, $this->extend_on_fail, $this->$group ), 300 );
 			add_action( 'shutdown', array( $this, 'spawn_server' ) );
 		}
 		return $this;
