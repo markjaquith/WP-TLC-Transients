@@ -12,12 +12,22 @@ class TLC_Transient_Update_Server {
 		) {
 			$update = get_transient( 'tlc_up__' . md5( $_POST['key'] ) );
 			if ( $update && $update[0] == $_POST['_tlc_update'] ) {
-				tlc_transient( $update[1] )
+				if ( $update[6] ){
+					tlc_transient( $update[1] )
+							->expires_in( $update[2] )
+							->add_group( $update[6] )
+							->extend_on_fail( $update[5] )
+							->updates_with( $update[3], (array) $update[4] )
+							->set_lock( $update[0] )
+							->fetch_and_cache();
+				}else{
+					tlc_transient( $update[1] )
 						->expires_in( $update[2] )
 						->extend_on_fail( $update[5] )
 						->updates_with( $update[3], (array) $update[4] )
 						->set_lock( $update[0] )
 						->fetch_and_cache();
+				}
 			}
 			exit();
 		}
