@@ -9,6 +9,7 @@ class TLC_Transient {
 	private $expiration = 0;
 	private $extend_on_fail = 0;
 	private $force_background_updates = false;
+	private $group = false;
 
 	public function __construct( $key ) {
 		$this->raw_key = $key;
@@ -44,9 +45,28 @@ class TLC_Transient {
 
 	private function schedule_background_fetch() {
 		if ( ! $this->has_update_lock() ) {
-			set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->raw_key, $this->expiration, $this->callback, $this->params, $this->extend_on_fail ), 300 );
+			set_transient( 'tlc_up__' . $this->key, array( $this->new_update_lock(), $this->raw_key, $this->expiration, $this->callback, $this->params, $this->extend_on_fail, $this->$group ), 300 );
 			add_action( 'shutdown', array( $this, 'spawn_server' ) );
 		}
+		return $this;
+	}
+
+	public function add_group($group) {
+		$this->group = $group;
+		$group_list = wp_cache_get('transinet_group');
+		if( ( $group_list == false )|| ( !in_array($group, $group_list) ) ){
+			//if a new group is added, up
+			$group_list[] = $group;
+			wp_cache_set('transinet_group',$group_list);
+		}
+
+		$cache_timestamp = wp_cache_get('transinet_time_key_'.$group );
+		if ( $cache_timestamp == false ){
+			//if a new group is added, assign a current timestamp to data.
+			wp_cache_add('transinet_time_key_'.$group, time() );
+		}
+		$this->raw_key = $this->raw_key.$cache_timestamp;
+		$this->key     = md5( $this->raw_key.$cache_timestamp );
 		return $this;
 	}
 
@@ -103,7 +123,7 @@ class TLC_Transient {
 		// We set the timeout as part of the transient data.
 		// The actual transient has a far-future TTL. This allows for soft expiration.
 		$expiration           = ( $this->expiration > 0 ) ? time() + $this->expiration : 0;
-		$transient_expiration = ( $this->expiration > 0 ) ? $this->expiration + 31536000 : 0; // 31536000 = 60*60*24*365 ~= one year
+		$transient_expiration = 0; // Issue with memcached. Use 0 as expiry instead.
 		set_transient( 'tlc__' . $this->key, array( $expiration, $data ), $transient_expiration );
 		return $this;
 	}
