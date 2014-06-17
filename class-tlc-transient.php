@@ -103,7 +103,7 @@ class TLC_Transient {
 		// We set the timeout as part of the transient data.
 		// The actual transient has a far-future TTL. This allows for soft expiration.
 		$expiration           = ( $this->expiration > 0 ) ? time() + $this->expiration : 0;
-		$transient_expiration = ( $this->expiration > 0 ) ? $this->expiration + 31536000 : 0; // 31536000 = 60*60*24*365 ~= one year
+		$transient_expiration = ( $this->expiration > 0 ) ? 2592000 : 0; // 2592000 = 60*60*24*30 ~= one month for compatiblity with memcache
 		set_transient( 'tlc__' . $this->key, array( $expiration, $data ), $transient_expiration );
 		return $this;
 	}
