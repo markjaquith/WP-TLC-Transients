@@ -39,9 +39,12 @@ class TLC_Transient {
 	}
 
 	private function raw_get() {
-		if ( ! isset( $_GET['delete-trans'] ) || ! $_GET['delete-trans'] ) {
-			return get_transient( 'tlc__' . $this->key );
+		// Cache backdoor
+		if ( isset( $_REQUEST['delete-trans'] ) && $_REQUEST['delete-trans'] ) {
+			return false;
 		}
+
+		return get_transient( 'tlc__' . $this->key );
 	}
 
 	private function schedule_background_fetch() {
