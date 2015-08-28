@@ -22,7 +22,7 @@ function my_callback() {
 // Grab that feed
 echo tlc_transient( 'example-feed' )
 	->updates_with( 'my_callback' )
-	->expires_in( 300 )
+	->expires_in( 5 * MINUTE_IN_SECONDS )
 	->get();
 ?>
 ```
@@ -32,7 +32,7 @@ This time, we'll set `background_only()` in the chain. This means that if there 
 <?php
 echo tlc_transient( 'example-feed' )
 	->updates_with( 'my_callback' )
-	->expires_in( 300 )
+	->expires_in( 5 * MINUTE_IN_SECONDS )
 	->background_only()
 	->get();
 ?>
@@ -49,7 +49,7 @@ if ( true ) {
 	$t->updates_with( 'some_other_callback' );
 }
 
-$t->expires_in( 300 );
+$t->expires_in( 5 * MINUTE_IN_SECONDS );
 echo $t->get();
 ?>
 ```
@@ -69,7 +69,7 @@ function my_callback_with_param( $param ) {
 // Grab that feed
 echo tlc_transient( 'example-feed' )
 	->updates_with( 'my_callback_with_param', array( 'bar' ) )
-	->expires_in( 300 )
+	->expires_in( 5 * MINUTE_IN_SECONDS )
 	->background_only()
 	->get();
 ?>
