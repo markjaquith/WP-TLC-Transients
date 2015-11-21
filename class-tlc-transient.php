@@ -143,4 +143,13 @@ class TLC_Transient {
 		$this->force_background_updates = true;
 		return $this;
 	}
+
+	private function remove_cache() {
+		delete_transient( 'tlc__' . $this->key );
+	}
+
+	public function purge() {
+		$this->remove_cache();
+		$this->release_update_lock();
+	}
 }
